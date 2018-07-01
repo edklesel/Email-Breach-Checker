@@ -1,117 +1,111 @@
-"""
-Author - Edward Klesel
-
-"""
-
-
 import requests
 import json
 import os
 import logging
 from time import sleep
 
-hackLogger = logging.getLogger('HackLogger')
-hackLogger.setLevel(logging.DEBUG)
-
+# Define logger
+breachLogger = logging.getLogger('breachLogger')
 logFile = logging.FileHandler('EmailBreachCheck.log')
-# logFormat = "%(asctime)s - %(levelname)s - %(message)s"
-logFormatter = logging.Formatter("%(levelname)-8s - %(asctime)s.%(msecs)03d - %(message)s", '%Y-%m-%d %H:%M:%S')
+logFormatter = logging.Formatter("%(levelname)-7s - %(asctime)s.%(msecs)03d - %(message)s", '%Y-%m-%d %H:%M:%S')
 logFile.setFormatter(logFormatter)
 logFile.setLevel(logging.DEBUG)
-hackLogger.addHandler(logFile)
+breachLogger.addHandler(logFile)
 
-hackLogger.info('-----------------------------------')
-hackLogger.info('Beginning checking Run:')
+# Turn debugging on?
+debug = 0
 
-newHacksTotal = 0
+# Set Logging Level
+if debug == 0:
+    breachLogger.setLevel(logging.INFO)
+elif debug == 1:
+    breachLogger.setLevel(logging.DEBUG)
 
-try:
-    # Read email accounts from txt file
-    with open('accounts.txt', 'r') as t:
+#Start the run
+breachLogger.info('-----------------------------------')
+breachLogger.info('Beginning checking Run:')
 
-        # Read each email address
-        for line in t.read().splitlines():
-            # Make the GET request
-            checkEmail = requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/' + line)
-            # print('')
-            # print('Checking ' + line + ' to see if it has been hacked...')
-            hackLogger.info('Checking ' + line + ' to see if it has been hacked...')
+newBreachesTotal = 0
 
-            newHackCount = 0
+# Creates a file containing previous breaches, if one doesnt exist
+if not os.path.isfile('KnownBreaches.csv'):
+    with open('KnownBreaches.csv', 'w') as knownBreaches:
+        knownBreaches.write('email,title,breachdate,modifieddate\n')
+        breachLogger.debug('No known breaches found. Creating list of known breaches.')
 
-            # A 200 OK response indicates that the account has been hacked
+# Read email accounts from txt file
+with open('accounts.txt', 'r') as t:
 
-            hackLogger.debug('Response code = ' + str(checkEmail.status_code) + ' ' + str(checkEmail.reason))
+    # Read each email address
+    for line in t.read().splitlines():
 
-            if checkEmail.status_code == 200:
+        # Make the GET request
+        checkEmail = requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/' + line)
+        breachLogger.info('Checking ' + line + ' to see if it has been breached...')
 
-                # Loads the response from the HaveIBeenPwned API
-                hackDetails = json.loads(checkEmail.content)
+        newBreachCount = 0
 
-                # Loops through each hacked site
-                for hack in hackDetails:
+        breachLogger.debug('Response code = ' + str(checkEmail.status_code) + ' ' + str(checkEmail.reason))
 
-                    hacksToLog = []
+        # A 200 OK response indicates that the account has been breached
+        if checkEmail.status_code == 200:
 
-                    # Creates a file containing previous hacks, if one doesnt exist
-                    if not os.path.isfile('KnownHacks.csv'):
-                        with open('KnownHacks.csv','w') as KnownHacks:
-                            KnownHacks.write('email,title,breachdate,modifieddate')
-                            hackLogger.debug('No known hacks found. Creating list of known hacks.')
+            # Loads the response from the HaveIBeenPwned API
+            breachDetails = json.loads(checkEmail.content)
 
-                    # Entry to write into file of previous hacks, used to check if a new hack has been found
-                    logHack = line + ',' + hack['Title'] + ',' + hack['BreachDate'] + ',' + hack['ModifiedDate']
 
-                    # Checks if this hack has been previously detected
-                    with open('KnownHacks.csv','r') as hacks:
-                        if logHack not in hacks.read().splitlines():
-                            hacksToLog.append(logHack)
-                            newHackCount += 1
-                            newHacksTotal += 1
+            # Loops through each breached site
+            for breach in breachDetails:
 
-                    # Gives the user details of the new hack
-                    if newHackCount > 0:
-                        if newHackCount == 1:
-                            hackLogger.warning('New hack(s) for ' +
-                                  line +
-                                  ' have been logged! ')
 
-                        hackLogger.warning(
-                              ' '*10 +
-                              hack['Title'] +
-                              ' was breached on ' +
-                              hack['BreachDate'] +
-                              '!')
+                # Entry to write into file of previous breaches, used to check if a new breach has been found
+                breachInfo = line + ',' + breach['Title'] + ',' + breach['BreachDate'] + ',' + breach['ModifiedDate']
 
-                    # If there are new hacks, add them to the file
-                    if hacksToLog != []:
-                        with open('KnownHacks.csv','a') as hacks:
-                            for writeHack in hacksToLog:
-                                hacks.write(writeHack + '\n')
+                # Checks if this breach has been previously detected
+                with open('KnownBreaches.csv','r') as knownBreaches:
+                    if breachInfo not in knownBreaches.read().splitlines():
+                        breachLogger.debug(breach['Title'] + ' is not in the list of known breaches.')
+                        newBreachCount += 1
+                        newBreachesTotal += 1
+                        logBreach = True
+                    else:
+                        breachLogger.debug('The ' + breach['Title'] + ' on ' + breach['BreachDate'] + ' is already in the list of known breaches.')
+                        logBreach = False
 
-                # If there are no new hacks, tell the user
-                hackLogger.debug('newHackCount = '  + str(newHackCount))
-                if newHackCount == 0:
-                    # No new breaches have been registered.
-                    hackLogger.info('The email address ' + line + ' has not been hacked since the last check!')
+                # Gives the user details of the new breach
+                if newBreachCount > 0:
+                    if newBreachCount == 1:
+                        breachLogger.warning('New breach(es) for ' + line + ' have been logged! ')
 
-            # A 404 response indicates the account has not been hacked
-            elif checkEmail.status_code == 404:
-                # print('The email address ' + line + ' has not been hacked since the last check!')
-                hackLogger.info('The email address ' + line + ' has not been hacked since the last check!')
+                    breachLogger.warning(' '*10 + breach['Title'] + ' was breached on ' + breach['BreachDate'] + '!')
 
-            else:
-                hackLogger.error('Unable to check ' + line +
-                                ', received a ' + str(checkEmail.status_code) +
-                                ' ' + str(checkEmail.reason) +
-                                ' response from the HaveIBeenPwned API!')
-                hackLogger.debug(checkEmail.content)
+                # If this is a new breach, add it to the file.
+                if logBreach == True:
+                    with open('KnownBreaches.csv','a') as knownBreaches:
+                        knownBreaches.write(breachInfo + '\n')
+                        breachLogger.debug('Writing ' + breach['Title'] + ' to the list of known breaches.')
 
-            # Add in a delay to limit the rate of requests (as per API spec)
-            sleepTime = 2
-            hackLogger.debug('Sleeping for ' + str(sleepTime) + ' seconds.')
-            sleep(sleepTime)
+            breachLogger.debug('newBreachCount = '  + str(newBreachCount))
 
-except:
-    hackLogger.warning('No accounts.txt found.')
-hackLogger.info('Checking run finished - {} new hacks detected.'.format(newHacksTotal))
+            # If there are no new breaches, tell the user
+            if newBreachCount == 0:
+                breachLogger.info('The email address ' + line + ' has not been breached since the last check!')
+
+        # A 404 response indicates the account has not been breached
+        elif checkEmail.status_code == 404:
+            breachLogger.info('The email address ' + line + ' has not been breached since the last check!')
+
+        # If an unknown response was received from the API
+        else:
+            breachLogger.error('Unable to check ' + line +
+                            ', received a ' + str(checkEmail.status_code) +
+                            ' ' + str(checkEmail.reason) +
+                            ' response from the HaveIBeenPwned API!')
+            breachLogger.debug(checkEmail.content)
+
+        # Add in a delay to limit the rate of requests (as per API spec)
+        sleepTime = 2
+        breachLogger.debug('Sleeping for ' + str(sleepTime) + ' seconds.')
+        sleep(sleepTime)
+
+breachLogger.info('Checking run finished - {} new breaches detected.'.format(newBreachesTotal))
