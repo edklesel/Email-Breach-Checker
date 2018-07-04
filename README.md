@@ -10,5 +10,5 @@ Daily process which makes requests to the HaveIBeenPwned API to check for email 
 
 
 ## To do:
-- ~~Create a seperate debug and info/warning log file~~ Completed 1/07/2018
-- ~~Edit variable names, chanigng "hack" to something less silly~~ Completed 1/07/2018
+- ~~Create a seperate debug and info/warning log file~~                         Completed 1/07/2018
+- ~~Edit variable names, chanigng "hack" to something less silly~~              Completed 1/07/2018
