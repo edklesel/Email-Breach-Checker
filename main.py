@@ -27,6 +27,7 @@ breachLogger.info('-----------------------------------')
 breachLogger.info('Beginning checking Run:')
 
 newBreachesTotal = 0
+amendedBreachesTotal = 0
 
 # Creates a file containing previous breaches, if one doesnt exist
 if not os.path.isfile('KnownBreaches.csv'):
@@ -67,27 +68,68 @@ with open('accounts.txt', 'r') as t:
 
                 # Checks if this breach has been previously detected
                 with open('KnownBreaches.csv','r') as knownBreaches:
-                    if breachInfo not in knownBreaches.read().splitlines():
-                        breachLogger.debug(breachTitle + ' is not in the list of known breaches.')
-                        newBreachCount += 1
-                        newBreachesTotal += 1
-                        logBreach = True
-                    else:
-                        breachLogger.debug('The ' + breachTitle + ' breach on ' + breachDate + ' is already in the list of known breaches.')
-                        logBreach = False
 
-                # Gives the user details of the new breach
-                if newBreachCount > 0:
-                    if newBreachCount == 1:
-                        breachLogger.warning('New breach(es) for ' + emailAddress + ' have been logged! ')
+                    # Breaches are determined to be new unless they are found in KnownBreaches.csv
+                    newBreach = True
 
-                    breachLogger.warning(' '*10 + breachTitle + ' was breached on ' + breachDate + '!')
+                    # Amendments are determined to be unnecessary unless an updated date is found
+                    amendBreach = False
+                    breachToAmend = None
 
-                # If this is a new breach, add it to the file.
-                if logBreach == True:
+                    # Cycling through every known breach in KnownBreaches.txt
+                    for pastBreach in knownBreaches.read().splitlines():
+                        pastBreachSplit = pastBreach.split(',')
+
+                        # If this breach is already known to have happened
+                        if pastBreachSplit[0] == emailAddress and pastBreachSplit[1] == breachTitle and pastBreachSplit[2] == breachDate:
+
+                            newBreach = False
+
+                            # If this breach has not been updated
+                            if pastBreachSplit[3] == breachModified:
+                                breachLogger.debug('The ' + breachTitle + ' breach on ' + breachDate + ' is already in the list of known breaches.')
+
+                            # If this breach has been updated since the last run
+                            else:
+                                breachLogger.info('There has been an update to the ' + breachTitle + ' breach on ' + breachDate + ' since the last check!')
+                                amendBreach = True
+                                breachToAmend = pastBreach
+
+                            # If a matching breach has been found, break the loop
+                            break
+
+                # This breach is not in the list of known breaches
+                if newBreach == True:
+                    breachLogger.debug(breachTitle + ' is not in the list of known breaches.')
+                    newBreachCount += 1
+                    newBreachesTotal += 1
+
+                    # Add this breach to the file
                     with open('KnownBreaches.csv','a') as knownBreaches:
                         knownBreaches.write(breachInfo + '\n')
                         breachLogger.debug('Writing ' + breachTitle + ' to the list of known breaches.')
+
+                        # Presentation function only
+                        if newBreachCount == 1:
+                            breachLogger.warning('New breach(es) for ' + emailAddress + ' have been logged! ')
+
+                        # Gives the user details of the breach
+                        breachLogger.warning(' '*10 + breachTitle + ' was breached on ' + breachDate + '!')
+
+                # If this breach is in the list of known breaches, but needs to be updated
+                elif amendBreach == True:
+
+                    amendedBreachesTotal += 1
+
+                    with open('KnownBReaches.csv') as knownBreachesAll:
+                        knownBreaches = knownBreachesAll.read().splitlines()
+
+                    with open('KnownBreaches.csv', 'w') as knownBreachesAmend:
+                        for knownBreach in knownBreaches:
+                            if knownBreach == breachToAmend:
+                                knownBreachesAmend.write(breachInfo + '\n')
+                            else:
+                                knownBreachesAmend.write(knownBreach + '\n')
 
             breachLogger.debug('newBreachCount = '  + str(newBreachCount))
 
@@ -112,4 +154,5 @@ with open('accounts.txt', 'r') as t:
         breachLogger.debug('Sleeping for ' + str(sleepTime) + ' seconds.')
         sleep(sleepTime)
 
-breachLogger.info('Checking run finished - {} new breaches detected.'.format(newBreachesTotal))
+breachLogger.info('Checking run finished - {} new breaches detected,'\
+                  ' {} breaches have updated information.'.format(newBreachesTotal,amendedBreachesTotal))
