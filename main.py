@@ -3,6 +3,7 @@ import json
 import os
 import logging
 from time import sleep
+from iso8601 import parse_date
 
 # Define logger
 breachLogger = logging.getLogger('breachLogger')
@@ -37,11 +38,11 @@ if not os.path.isfile('KnownBreaches.csv'):
 with open('accounts.txt', 'r') as t:
 
     # Read each email address
-    for line in t.read().splitlines():
+    for emailAddress in t.read().splitlines():
 
         # Make the GET request
-        checkEmail = requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/' + line)
-        breachLogger.info('Checking ' + line + ' to see if it has been breached...')
+        checkEmail = requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/' + emailAddress)
+        breachLogger.info('Checking ' + emailAddress + ' to see if it has been breached...')
 
         newBreachCount = 0
 
@@ -57,47 +58,50 @@ with open('accounts.txt', 'r') as t:
             # Loops through each breached site
             for breach in breachDetails:
 
+                breachTitle = breach['Title']
+                breachDate = breach['BreachDate']
+                breachModified = str(parse_date(breach['ModifiedDate']).date())
 
-                # Entry to write into file of previous breaches, used to check if a new breach has been found
-                breachInfo = line + ',' + breach['Title'] + ',' + breach['BreachDate'] + ',' + breach['ModifiedDate']
+                # String containing details of the breach, used to check if this is a new breach
+                breachInfo = ','.join([emailAddress, breachTitle, breachDate, breachModified])
 
                 # Checks if this breach has been previously detected
                 with open('KnownBreaches.csv','r') as knownBreaches:
                     if breachInfo not in knownBreaches.read().splitlines():
-                        breachLogger.debug(breach['Title'] + ' is not in the list of known breaches.')
+                        breachLogger.debug(breachTitle + ' is not in the list of known breaches.')
                         newBreachCount += 1
                         newBreachesTotal += 1
                         logBreach = True
                     else:
-                        breachLogger.debug('The ' + breach['Title'] + ' on ' + breach['BreachDate'] + ' is already in the list of known breaches.')
+                        breachLogger.debug('The ' + breachTitle + ' breach on ' + breachDate + ' is already in the list of known breaches.')
                         logBreach = False
 
                 # Gives the user details of the new breach
                 if newBreachCount > 0:
                     if newBreachCount == 1:
-                        breachLogger.warning('New breach(es) for ' + line + ' have been logged! ')
+                        breachLogger.warning('New breach(es) for ' + emailAddress + ' have been logged! ')
 
-                    breachLogger.warning(' '*10 + breach['Title'] + ' was breached on ' + breach['BreachDate'] + '!')
+                    breachLogger.warning(' '*10 + breachTitle + ' was breached on ' + breachDate + '!')
 
                 # If this is a new breach, add it to the file.
                 if logBreach == True:
                     with open('KnownBreaches.csv','a') as knownBreaches:
                         knownBreaches.write(breachInfo + '\n')
-                        breachLogger.debug('Writing ' + breach['Title'] + ' to the list of known breaches.')
+                        breachLogger.debug('Writing ' + breachTitle + ' to the list of known breaches.')
 
             breachLogger.debug('newBreachCount = '  + str(newBreachCount))
 
             # If there are no new breaches, tell the user
             if newBreachCount == 0:
-                breachLogger.info('The email address ' + line + ' has not been breached since the last check!')
+                breachLogger.info('The email address ' + emailAddress + ' has not been breached since the last check!')
 
         # A 404 response indicates the account has not been breached
         elif checkEmail.status_code == 404:
-            breachLogger.info('The email address ' + line + ' has not been breached since the last check!')
+            breachLogger.info('The email address ' + emailAddress + ' has not been breached since the last check!')
 
         # If an unknown response was received from the API
         else:
-            breachLogger.error('Unable to check ' + line +
+            breachLogger.error('Unable to check ' + emailAddress +
                             ', received a ' + str(checkEmail.status_code) +
                             ' ' + str(checkEmail.reason) +
                             ' response from the HaveIBeenPwned API!')
