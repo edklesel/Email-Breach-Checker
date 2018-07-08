@@ -1,3 +1,14 @@
+"""
+
+Title:  Email Breach Checker
+Author: Edward Klesel
+Date:   30/06/2018
+
+Description:    This program takes a list of email addresses and queries the HaveIBeenPwned API to check if any
+                website accounts associated with these email addresses has been breached.
+
+"""
+
 import requests
 import json
 from time import sleep

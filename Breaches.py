@@ -1,3 +1,23 @@
+"""
+
+Title:  Breaches
+Author: Edward Klesel
+Date:   08/07/2018
+
+Description:    Defines classes used in the breachHistory module, to define Breaches and Past Breaches.
+
+Classes:
+
+Breach -        Breach containing data from the HaveIBeenPwned API, which allows main() to determine whether to
+                write this breach to file, amend this breach of do nothing at all.
+
+PastBreach -    Breach containing data form the file listing known breaches, which is used to determine whether
+                the breach defined in Breach is new or whether it has been seen before.
+
+"""
+
+
+
 from iso8601 import parse_date
 
 class Breach:
