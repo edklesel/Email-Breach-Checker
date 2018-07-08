@@ -16,9 +16,8 @@ PastBreach -    Breach containing data form the file listing known breaches, whi
 
 """
 
-
-
 from iso8601 import parse_date
+
 
 class Breach:
 
