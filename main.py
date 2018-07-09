@@ -29,6 +29,11 @@ breachHistory.checkFile()
 
 def main():
 
+    # Add in a delay to limit the rate of requests (as per API spec)
+    sleepTime = 2
+    breachLogger.debug('Sleeping for ' + str(sleepTime) + ' seconds.')
+    sleep(sleepTime)
+
     newBreachesTotal = 0
     amendedBreachesTotal = 0
 
@@ -94,10 +99,6 @@ def main():
                                    ' ' + str(checkEmail.reason) + ' response from the HaveIBeenPwned API!')
                 breachLogger.debug(checkEmail.content)
 
-            # Add in a delay to limit the rate of requests (as per API spec)
-            sleepTime = 2
-            breachLogger.debug('Sleeping for ' + str(sleepTime) + ' seconds.')
-            sleep(sleepTime)
 
     breachLogger.info('Checking run finished - {} new breaches detected,'
                       ' {} breaches have updated information.'.format(newBreachesTotal, amendedBreachesTotal))
