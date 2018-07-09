@@ -14,104 +14,146 @@ import json
 from time import sleep
 import breachLogging
 import breachHistory
+from cRun import Run
+import re
 
 # Define logger
 breachLogger = breachLogging.defLog()
 
 # Start the run
-breachLogger.info('-----------------------------------')
+breachLogger.info('***********************************')
 breachLogger.info('Beginning checking Run:')
-
 
 # Creates a file containing previous breaches, if one doesnt exist
 breachHistory.checkFile()
 
+checkingRun = Run()
 
-def main():
+sleepTime = 2
 
-    # Add in a delay to limit the rate of requests (as per API spec)
-    sleepTime = 2
-    breachLogger.debug('Sleeping for ' + str(sleepTime) + ' seconds.')
-    sleep(sleepTime)
 
-    newBreachesTotal = 0
-    amendedBreachesTotal = 0
+def main(run):
+
+    breachLogger.info('Date: ' + str(run.date))
+
+    breachLogger.info('Checking {} email addresses for new breaches.'.format(len(open('accounts.txt', 'r').read().splitlines())))
 
     # Read email accounts from txt file
-    with open('accounts.txt', 'r') as t:
+    with open('accounts.txt', 'r') as emails:
 
         # Read each email address
-        for emailAddress in t.read().splitlines():
+        for emailAddress in emails.read().splitlines():
 
-            # Make the GET request
-            checkEmail = requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/' + emailAddress)
-            breachLogger.info('Checking ' + emailAddress + ' to see if it has been breached...')
+            # Add in a delay to limit the rate of requests (as per API spec)
+            breachLogger.debug('Sleeping for ' + str(sleepTime) + ' seconds.')
+            sleep(sleepTime)
 
-            newBreachCount = 0
+            breachLogger.info('-----------------------------------')
 
-            breachLogger.debug('Response code = ' + str(checkEmail.status_code) + ' ' + str(checkEmail.reason))
+            # Tests the validity of the email address
+            breachLogger.debug('Testing the validity of ' + emailAddress + '.')
+            if validateEmail(emailAddress):
 
-            # A 200 OK response indicates that the account has been breached
-            if checkEmail.status_code == 200:
+                # Email address is valid
+                breachLogger.debug(emailAddress + ' is a valid email address.')
 
-                # Loads the response from the HaveIBeenPwned API
-                breachDetails = json.loads(checkEmail.content)
+                # Test the connection to the API
+                try:
+                    breachLogger.info('Checking ' + emailAddress + ' to see if it has been breached...')
+                    requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/test@example.com')
+                    breachLogger.debug('Connection to the HaveIBeenPwned API established.')
 
-                # Loops through each breached site
-                for breach in breachDetails:
+                    # Add in a delay to limit the rate of requests (as per API spec)
+                    breachLogger.debug('Sleeping for ' + str(sleepTime) + ' seconds.')
+                    sleep(sleepTime)
 
-                    newBreach = breachHistory.checkBreach(emailAddress, breach)
+                    # If a connection can be established, check the email
+                    checkEmail(emailAddress, run)
 
-                    # This breach is not in the list of known breaches
-                    if newBreach.Write is True:
-                        newBreachCount += 1
-                        newBreachesTotal += 1
+                # If no connection can be made, catch the error
+                except requests.exceptions.ConnectionError as e:
+                    breachLogger.error('Unable to connect to the HaveIBeenPwned API. See debug log for full error.')
+                    breachLogger.debug(e)
 
-                        breachHistory.writeBreach(newBreach)
-
-                        # Presentation function only
-                        if newBreachCount == 1:
-                            breachLogger.warning('New breach(es) for ' + emailAddress + ' have been logged! ')
-
-                        # Gives the user details of the breach
-                        breachLogger.warning(' '*10 + newBreach.Title + ' was breached on '
-                                             + newBreach.BreachDate + '!')
-
-                    # If this breach is in the list of known breaches, but needs to be updated
-                    elif newBreach.Amend is True:
-                        amendedBreachesTotal += 1
-                        breachHistory.amendBreach(newBreach)
-
-                breachLogger.debug('newBreachCount = '  + str(newBreachCount))
-
-                # If there are no new breaches, tell the user
-                if newBreachCount == 0:
-                    breachLogger.info('The email address ' + emailAddress +
-                                      ' has not been breached since the last check!')
-
-            # A 404 response indicates the account has not been breached
-            elif checkEmail.status_code == 404:
-                breachLogger.info('The email address ' + emailAddress + ' has not been breached since the last check!')
-
-            # If an unknown response was received from the API
+            # Email address is not valid.
             else:
-                breachLogger.error('Unable to check ' + emailAddress + ', received a ' + str(checkEmail.status_code) +
-                                   ' ' + str(checkEmail.reason) + ' response from the HaveIBeenPwned API!')
-                breachLogger.debug(checkEmail.content)
+                breachLogger.error(emailAddress + ' is not a valid email address!')
 
-
+    breachLogger.info('-----------------------------------')
     breachLogger.info('Checking run finished - {} new breaches detected,'
-                      ' {} breaches have updated information.'.format(newBreachesTotal, amendedBreachesTotal))
+                      ' {} breaches have updated information.'.format(run.newBreaches, run.amendedBreaches))
 
 
-try:
-    requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/test@example.com')
-    breachLogger.debug('Connection to the HaveIBeenPwned API established.')
-    runCode = True
-except requests.exceptions.ConnectionError as e:
-    breachLogger.error('Unable to connect to the HaveIBeenPwned API. Full error below:')
-    breachLogger.error(e)
-    runCode = False
+def checkEmail(emailAddress, run):
 
-if __name__ == '__main__' and runCode is True:
-    main()
+    # Make the GET request
+    checkEmail = requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/' + emailAddress)
+
+    newBreachCount = 0
+
+    breachLogger.debug('Response code = ' + str(checkEmail.status_code) + ' ' + str(checkEmail.reason))
+
+    # A 200 OK response indicates that the account has been breached
+    if checkEmail.status_code == 200:
+
+        # Loads the response from the HaveIBeenPwned API
+        breachDetails = json.loads(checkEmail.content)
+
+        # Loops through each breached site
+        for breach in breachDetails:
+
+            newBreach = breachHistory.checkBreach(emailAddress, breach)
+
+            # This breach is not in the list of known breaches
+            if newBreach.Write is True:
+                newBreachCount += 1
+                run.newBreaches += 1
+
+                breachHistory.writeBreach(newBreach)
+
+                # Presentation function only
+                if newBreachCount == 1:
+                    breachLogger.warning('New breach(es) for ' + emailAddress + ' have been logged! ')
+
+                # Gives the user details of the breach
+                breachLogger.warning(' ' * 10 + newBreach.Title + ' was breached on '
+                                     + newBreach.BreachDate + '!')
+
+            # If this breach is in the list of known breaches, but needs to be updated
+            elif newBreach.Amend is True:
+                run.amendedBreaches += 1
+                breachHistory.amendBreach(newBreach)
+
+        breachLogger.debug('newBreachCount = ' + str(newBreachCount))
+
+        # If there are no new breaches, tell the user
+        if newBreachCount == 0:
+            breachLogger.info('The email address ' + emailAddress +
+                              ' has not been breached since the last check!')
+
+    # A 404 response indicates the account has not been breached
+    elif checkEmail.status_code == 404:
+        breachLogger.info('The email address ' + emailAddress + ' has not been breached since the last check!')
+
+    # If an unknown response was received from the API
+    else:
+        breachLogger.error('Unable to check ' + emailAddress + ', received a ' + str(checkEmail.status_code) +
+                           ' ' + str(checkEmail.reason) + ' response from the HaveIBeenPwned API!')
+        breachLogger.debug(checkEmail.content)
+
+
+def validateEmail(address):
+
+    # This searches for emails following the format username@hostname.topleveldomain e.g test@example.com
+
+    format = '[a-zA-Z0-9.]+\@[a-zA-Z0-9]+\.[a-zA-Z]+'
+
+    match = re.search(format, address)
+
+    if match:
+        return True
+    else:
+        return False
+
+if __name__ == '__main__':
+    main(checkingRun)
