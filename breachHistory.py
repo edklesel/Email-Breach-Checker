@@ -23,7 +23,7 @@ amendBreach  -  Takes the breach information, formats it and edits the dateModif
 
 import breachLogging
 import os
-from Breaches import Breach, PastBreach
+from breaches import Breach, PastBreach
 import logging
 
 # Enables log entries to be written
