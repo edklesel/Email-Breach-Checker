@@ -1,35 +1,65 @@
 """
 
-Title: Breach Logger
+Title:  breachMultiLogging
 Author: Edward Klesel
-Date: 08/07/2018
+Date:   10/07/2018
 
-Description:    Module defining the logger used to log events in the Email Breach Checker program.
+Description:    Module containing the functions used to log in multiple log files
+                at different logging levels from one function call.
+
+Functions:
+
+breachLog - Logs entries at a specified level in different log files. Filenames
+            are specified at the start of the module.
 
 """
 
 import logging
 
-logLevel = logging.INFO
+# Giving the loggers two unique identities
+breachLogger = logging.getLogger('BreachLogger')
+breachLoggerDebug = logging.getLogger('BreachLoggerDebug')
 
-def defLog():
+# The file locations of the main log file and the debug log file
+logMain = logging.FileHandler('EmailBreachCheck.log')
+logDebug = logging.FileHandler('EmailBreachCheck_Debug.log')
 
-    # Give the logger a name so it can be called in other modules.
-    breachLogger = logging.getLogger('BreachLogger')
+# Both loggers use the same format, so only one formatter is needed
+logFormatter = logging.Formatter("%(levelname)-7s - %(asctime)s.%(msecs)03d - %(message)s", '%Y-%m-%d %H:%M:%S')
+logMain.setFormatter(logFormatter)
+logDebug.setFormatter(logFormatter)
 
-    # Location of the .log file
-    logFile = logging.FileHandler('EmailBreachCheck.log')
+# Adding the associated handlers to the logger
+breachLogger.addHandler(logMain)
+breachLoggerDebug.addHandler(logDebug)
 
-    # Format of the log entries
-    logFormatter = logging.Formatter("%(levelname)-7s - %(asctime)s.%(msecs)03d - %(message)s", '%Y-%m-%d %H:%M:%S')
+# Setting the level of the different loggers
+breachLogger.setLevel(logging.INFO)
+breachLoggerDebug.setLevel(logging.DEBUG)
 
-    # Apply the format to the file
-    logFile.setFormatter(logFormatter)
+def breachLog(level, message):
 
-    # Apply the file handler to the logger object
-    breachLogger.addHandler(logFile)
+    # For debug messages, only log to the debug logger
+    if level.lower() == 'debug':
+        breachLoggerDebug.debug(message)
 
-    # Set the level of the logging
-    breachLogger.setLevel(logLevel)
+    # For all else, log to both
+    elif level.lower() == 'info':
+        breachLogger.info(message)
+        breachLoggerDebug.info(message)
 
-    return breachLogger
+    elif level.lower() == 'error':
+        breachLogger.error(message)
+        breachLoggerDebug.error(message)
+
+    elif level.lower() == 'warning':
+        breachLogger.warning(message)
+        breachLoggerDebug.warning(message)
+
+    elif level.lower() == 'critical':
+        breachLogger.critical(message)
+        breachLoggerDebug.critical(message)
+
+    elif level.lower() == 'exception':
+        breachLogger.exception(message)
+        breachLoggerDebug.exception(message)
