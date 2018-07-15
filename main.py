@@ -16,6 +16,7 @@ import breachHistory
 from cRun import Run
 from breachLogging import breachLog
 import re
+import sendEmail
 
 # Start the run
 breachLog('info','***********************************')
@@ -32,7 +33,6 @@ sleepTime = 2
 def main(run):
 
     breachLog('info','Date: ' + str(run.date))
-
     breachLog('info','Checking {} email addresses for new breaches.'.format(len(open('accounts.txt', 'r').read().splitlines())))
 
     # Read email accounts from txt file
@@ -107,6 +107,7 @@ def checkEmail(emailAddress, run):
                 run.newBreaches += 1
 
                 breachHistory.writeBreach(newBreach)
+                sendEmail.sendEmail(newBreach)
 
                 # Presentation function only
                 if newBreachCount == 1:
@@ -118,9 +119,9 @@ def checkEmail(emailAddress, run):
 
             # If this breach is in the list of known breaches, but needs to be updated
             elif newBreach.Amend is True:
+
                 run.amendedBreaches += 1
                 breachHistory.amendBreach(newBreach)
-
                 breachLog('debug','newBreachCount = ' + str(newBreachCount))
 
         # If there are no new breaches, tell the user
@@ -142,9 +143,7 @@ def checkEmail(emailAddress, run):
 def validateEmail(address):
 
     # This searches for emails following the format username@hostname.topleveldomain e.g test@example.com
-
     format = '[a-zA-Z0-9.]+\@[a-zA-Z0-9]+\.[a-zA-Z]+'
-
     match = re.search(format, address)
 
     if match:

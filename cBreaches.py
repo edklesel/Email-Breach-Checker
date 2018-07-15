@@ -25,7 +25,9 @@ class Breach:
 
         self.Address = Address
         self.Title = breachDetails['Title']
+        self.Site = breachDetails['Domain']
         self.BreachDate = breachDetails['BreachDate']
+        self.Body = breachDetails['Description']
         self.ModifiedDate = str(parse_date(breachDetails['ModifiedDate']).date())
         self.Info = ','.join([self.Address,self.Title,self.BreachDate,self.ModifiedDate])
         self.CoreInfo = [self.Address,self.Title,self.BreachDate]
