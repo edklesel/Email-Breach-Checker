@@ -10,7 +10,6 @@ Description:    This program takes a list of email addresses and queries the Hav
 """
 
 import requests
-import json
 from time import sleep
 import breachHistory
 from cRun import Run
@@ -95,7 +94,7 @@ def checkEmail(emailAddress, run):
     if checkEmail.status_code == 200:
 
         # Loads the response from the HaveIBeenPwned API
-        breachDetails = json.loads(checkEmail.content)
+        breachDetails = checkEmail.json()
 
         # Loops through each breached site
         for breach in breachDetails:
