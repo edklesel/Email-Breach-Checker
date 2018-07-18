@@ -28,7 +28,7 @@ def sendEmail(breach):
 
     # Build the SMTP server connection
     smtpServer = 'smtp.gmail.com'
-    port = '587'
+    port = 587
     server = smtplib.SMTP()
     server.connect(smtpServer, port)
     server.ehlo()
