@@ -26,3 +26,4 @@ class Run:
         self.newBreaches = 0
         self.amendedBreaches = 0
         self.date = datetime.datetime.now().date()
+        self.time = datetime.datetime.now().time()

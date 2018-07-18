@@ -49,6 +49,9 @@ def sendEmail(breach):
     + "</body>\n"\
     + "</html>"
 
+    # Encode the message in unicode
+    message = message.encode('utf-8')
+
     msg = MIMEText(message.format(breach.Address, breach.Site, breach.BreachDate, breach.Body), 'html')
 
     msg['Subject'] = 'New breach detected for {}'.format(breach.Address)

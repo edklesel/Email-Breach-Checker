@@ -33,6 +33,7 @@ sleepTime = 2
 def main(run):
 
     breachLog('info','Date: ' + str(run.date))
+    breachLog('info','Time: ' + str(run.time))
     breachLog('info','Checking {} email addresses for new breaches.'.format(len(open('accounts.txt', 'r').read().splitlines())))
 
     # Read email accounts from txt file
