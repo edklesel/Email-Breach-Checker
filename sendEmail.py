@@ -41,7 +41,7 @@ def sendEmail(breach):
     breachLog('debug','Logged in successfully.')
 
     # Construct the message to be sent
-    message = "<html>\n"\
+    messageRaw = "<html>\n"\
     + "<head></head>\n"\
     + "<body>"\
     + "<p>Attention user!</p>\n\n"\
@@ -49,11 +49,13 @@ def sendEmail(breach):
     + "<p>{3}</p>\n\n"\
     + "<p>It would be advised that you change your password on this website, to protect your information.<p>\n\n"\
     + "<p> This was an automated message.</p>\n"\
-    + "<p> If you have any queires about this message, contact {}.</p>\n".format(name)\
+    + "<p> If you have any queries about this message, contact {}.</p>\n".format(name)\
     + "</body>\n"\
     + "</html>"
 
-    msg = MIMEText(message.format(breach.Address, breach.Site, breach.BreachDate, breach.Body).encode('utf-8'), 'html','UTF-8')
+    message = messageRaw.format(breach.Address, breach.Site, breach.BreachDate, breach.Body).encode('utf-8')
+
+    msg = MIMEText(message, 'html','UTF-8')
 
     msg['Subject'] = 'New breach detected for {}'.format(breach.Address)
     msg['From'] = sendAddress
