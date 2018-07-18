@@ -30,11 +30,15 @@ def sendEmail(breach):
     smtpServer = 'smtp.gmail.com'
     port = 587
     server = smtplib.SMTP()
+    breachLog('debug','Connecting to the SMTP server @ ' + smtpServer + ':' + str(port))
     server.connect(smtpServer, port)
     server.ehlo()
     server.starttls()
     server.ehlo()
+    breachLog('debug','Connection to the SMTP server established.')
+    breachLog('debug','Logging in to the SMTP server as ' + sendAddress + '.')
     server.login(sendAddress, sendPassword)
+    breachLog('debug','Logged in successfully.')
 
     # Construct the message to be sent
     message = "<html>\n"\
@@ -49,14 +53,12 @@ def sendEmail(breach):
     + "</body>\n"\
     + "</html>"
 
-    # Encode the message in unicode
-    message = message.encode('utf-8')
-
-    msg = MIMEText(message.format(breach.Address, breach.Site, breach.BreachDate, breach.Body), 'html')
+    msg = MIMEText(message.format(breach.Address, breach.Site, breach.BreachDate, breach.Body).encode('utf-8'), 'html','UTF-8')
 
     msg['Subject'] = 'New breach detected for {}'.format(breach.Address)
     msg['From'] = sendAddress
-    msg['To'] = breach.Address
+    # msg['To'] = breach.Address
+    msg['To'] = 'edwardklesel@googlemail.com'
 
     # Send the message
     try:
