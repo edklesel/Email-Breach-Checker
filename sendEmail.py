@@ -59,8 +59,7 @@ def sendEmail(breach):
 
     msg['Subject'] = 'New breach detected for {}'.format(breach.Address)
     msg['From'] = sendAddress
-    # msg['To'] = breach.Address
-    msg['To'] = 'edwardklesel@googlemail.com'
+    msg['To'] = breach.Address
 
     # Send the message
     try:
