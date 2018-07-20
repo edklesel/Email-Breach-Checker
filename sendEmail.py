@@ -22,7 +22,7 @@ def sendEmail(breach):
 
     # Email account used to send email addresses
     # You will need to create your own "email" and "password"
-    # files containing the email address you want to send emails from
+    # files containing the email address you want to send emails from.
     sendAddress = open('email','r').read()
     sendPassword = open('password','r').read()
 

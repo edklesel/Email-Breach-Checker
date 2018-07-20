@@ -18,8 +18,8 @@ import re
 import sendEmail
 
 # Start the run
-breachLog('info','***********************************')
-breachLog('info','Beginning checking Run:')
+breachLog('info', '***********************************')
+breachLog('info', 'Beginning checking Run:')
 
 # Creates a file containing previous breaches, if one doesnt exist
 breachHistory.checkFile()
@@ -31,9 +31,10 @@ sleepTime = 2
 
 def main(run):
 
-    breachLog('info','Date: ' + str(run.date))
-    breachLog('info','Time: ' + str(run.time))
-    breachLog('info','Checking {} email addresses for new breaches.'.format(len(open('accounts.txt', 'r').read().splitlines())))
+    breachLog('info', 'Date: ' + str(run.date))
+    breachLog('info', 'Time: ' + str(run.time.replace(microsecond=0)))
+    numAddresses = len(open('accounts.txt', 'r').read().splitlines())
+    breachLog('info', 'Checking {} email addresses for new breaches.'.format(numAddresses))
 
     # Read email accounts from txt file
     with open('accounts.txt', 'r') as emails:
@@ -42,26 +43,26 @@ def main(run):
         for emailAddress in emails.read().splitlines():
 
             # Add in a delay to limit the rate of requests (as per API spec)
-            breachLog('debug','Sleeping for ' + str(sleepTime) + ' seconds.')
+            breachLog('debug', 'Sleeping for ' + str(sleepTime) + ' seconds.')
             sleep(sleepTime)
 
-            breachLog('info','-----------------------------------')
+            breachLog('info', '-----------------------------------')
 
             # Tests the validity of the email address
-            breachLog('debug','Testing the validity of ' + emailAddress + '.')
+            breachLog('debug', 'Testing the validity of ' + emailAddress + '.')
             if validateEmail(emailAddress):
 
                 # Email address is valid
-                breachLog('debug',emailAddress + ' is a valid email address.')
+                breachLog('debug', emailAddress + ' is a valid email address.')
 
                 # Test the connection to the API
                 try:
-                    breachLog('info','Checking ' + emailAddress + ' to see if it has been breached...')
+                    breachLog('info', 'Checking ' + emailAddress + ' to see if it has been breached...')
                     requests.get('https://haveibeenpwned.com/api/v2/breachedaccount/test@example.com')
-                    breachLog('debug','Connection to the HaveIBeenPwned API established.')
+                    breachLog('debug', 'Connection to the HaveIBeenPwned API established.')
 
                     # Add in a delay to limit the rate of requests (as per API spec)
-                    breachLog('debug','Sleeping for ' + str(sleepTime) + ' seconds.')
+                    breachLog('debug', 'Sleeping for ' + str(sleepTime) + ' seconds.')
                     sleep(sleepTime)
 
                     # If a connection can be established, check the email
@@ -69,15 +70,15 @@ def main(run):
 
                 # If no connection can be made, catch the error
                 except requests.exceptions.ConnectionError as e:
-                    breachLog('error','Unable to connect to the HaveIBeenPwned API. See debug log for full error.')
-                    breachLog('exception',e)
+                    breachLog('error', 'Unable to connect to the HaveIBeenPwned API. See debug log for full error.')
+                    breachLog('exception', e)
 
             # Email address is not valid.
             else:
-                breachLog('error',emailAddress + ' is not a valid email address!')
+                breachLog('error', emailAddress + ' is not a valid email address!')
 
-    breachLog('info','-----------------------------------')
-    breachLog('info','Checking run finished - {} new breaches detected,'
+    breachLog('info', '-----------------------------------')
+    breachLog('info', 'Checking run finished - {} new breaches detected,'
                       ' {} breaches have updated information.'.format(run.newBreaches, run.amendedBreaches))
 
 
@@ -88,7 +89,7 @@ def checkEmail(emailAddress, run):
 
     newBreachCount = 0
 
-    breachLog('debug','Response code = ' + str(checkEmail.status_code) + ' ' + str(checkEmail.reason))
+    breachLog('debug', 'Response code = ' + str(checkEmail.status_code) + ' ' + str(checkEmail.reason))
 
     # A 200 OK response indicates that the account has been breached
     if checkEmail.status_code == 200:
@@ -111,10 +112,10 @@ def checkEmail(emailAddress, run):
 
                 # Presentation function only
                 if newBreachCount == 1:
-                    breachLog('warning','New breach(es) for ' + emailAddress + ' have been logged! ')
+                    breachLog('warning', 'New breach(es) for ' + emailAddress + ' have been logged! ')
 
                 # Gives the user details of the breach
-                breachLog('warning',' ' * 10 + newBreach.Title + ' was breached on '
+                breachLog('warning', ' ' * 10 + newBreach.Title + ' was breached on '
                                      + newBreach.BreachDate + '!')
 
             # If this breach is in the list of known breaches, but needs to be updated
@@ -122,22 +123,22 @@ def checkEmail(emailAddress, run):
 
                 run.amendedBreaches += 1
                 breachHistory.amendBreach(newBreach)
-                breachLog('debug','newBreachCount = ' + str(newBreachCount))
+                breachLog('debug', 'newBreachCount = ' + str(newBreachCount))
 
         # If there are no new breaches, tell the user
         if newBreachCount == 0:
-            breachLog('info','The email address ' + emailAddress +
+            breachLog('info', 'The email address ' + emailAddress +
                               ' has not been breached since the last check!')
 
     # A 404 response indicates the account has not been breached
     elif checkEmail.status_code == 404:
-        breachLog('info','The email address ' + emailAddress + ' has not been breached since the last check!')
+        breachLog('info', 'The email address ' + emailAddress + ' has not been breached since the last check!')
 
     # If an unknown response was received from the API
     else:
-        breachLog('error','Unable to check ' + emailAddress + ', received a ' + str(checkEmail.status_code) +
+        breachLog('error', 'Unable to check ' + emailAddress + ', received a ' + str(checkEmail.status_code) +
                            ' ' + str(checkEmail.reason) + ' response from the HaveIBeenPwned API!')
-        breachLog('debug',checkEmail.content)
+        breachLog('debug', checkEmail.content)
 
 
 def validateEmail(address):

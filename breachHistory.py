@@ -37,7 +37,7 @@ def checkFile():
         # Creates a new file and writes in the column headers.
         with open(knownBreachFile, 'w') as knownBreaches:
             knownBreaches.write('email,title,breachdate,modifieddate\n')
-            breachLog('debug','No known breaches found. Creating list of known breaches.')
+            breachLog('debug', 'No known breaches found. Creating list of known breaches.')
 
 
 def checkBreach(address, breach):
@@ -64,10 +64,10 @@ def checkBreach(address, breach):
 
                     # This breach is unchanged since the last check
                     newBreach.Amend = False
-                    breachLog('debug','The ' + newBreach.Title + ' breach on ' + newBreach.BreachDate + ' is already in the list of known breaches.')
+                    breachLog('debug', 'The ' + newBreach.Title + ' breach on ' + newBreach.BreachDate + ' is already in the list of known breaches.')
 
                 else:
-                    breachLog('info','There has been an update to the ' + newBreach.Title + ' breach on ' + newBreach.BreachDate + ' since the last check!')
+                    breachLog('info', 'There has been an update to the ' + newBreach.Title + ' breach on ' + newBreach.BreachDate + ' since the last check!')
                     newBreach.Amend = True
 
                 # If a matching breach has been found, break the loop
@@ -79,7 +79,7 @@ def checkBreach(address, breach):
                 newBreach.Amend = False
 
         if newBreach.Write == True:
-            breachLog('debug',newBreach.Title + ' is not in the list of known breaches.')
+            breachLog('debug', newBreach.Title + ' is not in the list of known breaches.')
 
     return newBreach
 
@@ -88,7 +88,7 @@ def writeBreach(newBreach):
     # Writes the new breach to the file containing known breaches
     with open(knownBreachFile, 'a') as knownBreaches:
         knownBreaches.write(newBreach.Info + '\n')
-        breachLog('debug','Writing ' + newBreach.Title + ' to the list of known breaches.')
+        breachLog('debug', 'Writing ' + newBreach.Title + ' to the list of known breaches.')
 
 def amendBreach(newBreach):
 
@@ -103,8 +103,8 @@ def amendBreach(newBreach):
             # If this is the breach which needs amending
             if PastBreach(knownBreach).CoreInfo == newBreach.CoreInfo:
                 knownBreachesAmend.write(newBreach.Info + '\n')
-                breachLog('debug','Amending the ' + newBreach.Title + ' breach on ' + newBreach.BreachDate + '.')
-                breachLog('warning','The ' + newBreach.Title + ' breach on ' + newBreach.BreachDate + ' has been updated since the last check!')
+                breachLog('debug', 'Amending the ' + newBreach.Title + ' breach on ' + newBreach.BreachDate + '.')
+                breachLog('warning', 'The ' + newBreach.Title + ' breach on ' + newBreach.BreachDate + ' has been updated since the last check!')
 
             # If it's not, don't change anything
             else:

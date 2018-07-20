@@ -14,15 +14,33 @@ breachLog - Logs entries at a specified level in different log files. Filenames
 
 """
 
-import logging
+import logging, datetime, os
+
+# Setting up the dates used for the folders/files
+today = datetime.date.today()
+year = str(today.year)
+month = str(today.month)
+day = str(today.day)
+if len(month) == 1:
+    month = '0' + month
+if len(day) == 1:
+    day = '0' + day
+fileDate = year + '-' + month + '-' + day
+folderDate = year + '-' + month
+
+# Check that a folder for this month exists
+if not os.path.isdir('logs'):
+    os.mkdir('logs')
+if not os.path.isdir('logs/' + folderDate):
+    os.mkdir('logs/' + folderDate)
 
 # Giving the loggers two unique identities
 breachLogger = logging.getLogger('BreachLogger')
 breachLoggerDebug = logging.getLogger('BreachLoggerDebug')
 
 # The file locations of the main log file and the debug log file
-logMain = logging.FileHandler('EmailBreachCheck.log', "w", encoding = "UTF-8")
-logDebug = logging.FileHandler('EmailBreachCheck_Debug.log', "w", encoding = "UTF-8")
+logMain = logging.FileHandler('logs/' + folderDate + '/EmailBreachCheck_' + fileDate +'.log', "a", encoding = "UTF-8")
+logDebug = logging.FileHandler('logs/' + folderDate + '/EmailBreachCheck_Debug_' + fileDate +'.log', "a", encoding = "UTF-8")
 
 # Both loggers use the same format, so only one formatter is needed
 logFormatter = logging.Formatter("%(levelname)-7s - %(asctime)s.%(msecs)03d - %(message)s", '%Y-%m-%d %H:%M:%S')
