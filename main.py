@@ -10,12 +10,12 @@ Description:    This program takes a list of email addresses and queries the Hav
 """
 
 import requests
-from time import sleep
-import breachHistory
-from cRun import Run
-from breachLogging import breachLog
 import re
-import sendEmail
+from time import sleep
+from Modules import breachHistory
+from Classes.cRun import Run
+from Modules.breachLogging import breachLog
+from Modules.sendEmail import sendEmail
 
 # Start the run
 breachLog('info', '***********************************')
@@ -24,6 +24,7 @@ breachLog('info', 'Beginning checking Run:')
 # Creates a file containing previous breaches, if one doesnt exist
 breachHistory.checkFile()
 
+# Creates a Run object
 checkingRun = Run()
 
 sleepTime = 2
@@ -108,7 +109,7 @@ def checkEmail(emailAddress, run):
                 run.newBreaches += 1
 
                 breachHistory.writeBreach(newBreach)
-                sendEmail.sendEmail(newBreach)
+                sendEmail(newBreach)
 
                 # Presentation function only
                 if newBreachCount == 1:

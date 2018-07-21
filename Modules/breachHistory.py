@@ -21,10 +21,9 @@ amendBreach  -  Takes the breach information, formats it and edits the dateModif
 
 """
 
-import breachLogging
 import os
-from cBreaches import Breach, PastBreach
-from breachLogging import breachLog
+from Classes.cBreaches import Breach, PastBreach
+from Modules.breachLogging import breachLog
 
 # Define the name/path of the file containing known breaches
 knownBreachFile = 'KnownBreaches.csv'

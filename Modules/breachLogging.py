@@ -39,8 +39,8 @@ breachLogger = logging.getLogger('BreachLogger')
 breachLoggerDebug = logging.getLogger('BreachLoggerDebug')
 
 # The file locations of the main log file and the debug log file
-logMain = logging.FileHandler('logs/' + folderDate + '/EmailBreachCheck_' + fileDate +'.log', "a", encoding = "UTF-8")
-logDebug = logging.FileHandler('logs/' + folderDate + '/EmailBreachCheck_Debug_' + fileDate +'.log', "a", encoding = "UTF-8")
+logMain = logging.FileHandler('logs/' + folderDate + '/' + fileDate + '_EmailBreachCheck.log', "a", encoding = "UTF-8")
+logDebug = logging.FileHandler('logs/' + folderDate + '/' + fileDate + '_EmailBreachCheck_Debug.log', "a", encoding = "UTF-8")
 
 # Both loggers use the same format, so only one formatter is needed
 logFormatter = logging.Formatter("%(levelname)-7s - %(asctime)s.%(msecs)03d - %(message)s", '%Y-%m-%d %H:%M:%S')

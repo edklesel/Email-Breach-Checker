@@ -13,7 +13,7 @@ Description:    sendEmail is a module which uses a gmail SMTP server to send an 
 
 import smtplib
 from email.mime.text import MIMEText
-from breachLogging import breachLog
+from Modules.breachLogging import breachLog
 
 # Your name
 name = 'Edward Klesel'
