@@ -1,25 +1,30 @@
 """
 
-Title:  classes
+Title:  cRun
 Author: Edward Klesel
 Date:   09/07/2018
 
-Description -
-
-Classes:
-
-Run -       Run is a class to contain the information about the current checking run,
-            containing attributes used to tell the user how many new/amended breaches
-            have been found during this checking run.
-
-Address -   Address is a class detailing the email address, which contains information
-            about the number of breaches associated with that email address.
+Description -   Module containing classes used during a checking run.
 
 """
 
 import datetime
 
+
 class Run:
+
+    """
+
+    Title:  Run
+    Author: Edward Klesel
+    Date:   09/07/2018
+
+    Description:    Run is a class to contain the information about the current checking run,
+                    containing attributes used to tell the user how many new/amended breaches
+                    have been found during this checking run, as well as the date/time the
+                    run began.
+
+    """
 
     def __init__(self):
 

@@ -1,0 +1,29 @@
+{
+    "Accounts":[
+        {
+        "Address": "test@example.com",
+        "Breach Alert": 1,
+        "Monthly Stats": 1
+    },{
+    }],
+    "Alerting":{
+        "Server": "",
+        "Port": 0,
+        "Address": "",
+        "Password": "",
+        "Signature": ""
+    },
+    "Run":{
+        "Sleep Time": 2,
+        "Known Breaches": ""
+    },
+    "User Agent": {
+        "User-Agent": "Email Breach Checker, a simple python script written by Edward Klesel.",
+        "From": ""
+    },
+    "Logging": {
+        "Location": "",
+        "Format": "%(levelname)-7s - %(asctime)s.%(msecs)03d - %(message)s",
+        "Date Format": "%Y-%m-%d %H:%M:%S"
+    }
+}

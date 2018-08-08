@@ -4,31 +4,36 @@ Module: Breach History
 Author: Edward Klesel
 Date:   08/07/2018
 
-Description:    Module containing methods required for the Email Breach Checker program, which queries the HaveIBeenPwned API
-                to check whether accounts created using a given email address have been breached and details leaked.
-
-Methods:
-
-checkFile    -  Checks if a file with a given name exists, and creates it if it does not.
-
-checkBreach  -  Checks the file containing breaches already known to the user. Returns True if known and False if it's a
-                new breach. Can also check if the breach has been modified and needs amending (True/False).
-
-writeBreach  -  Takes the breach information, formats it and writes it to the file containing known breaches.
-
-amendBreach  -  Takes the breach information, formats it and edits the dateModified in the file containing Known Breaches
-                to indicate it's been updated.
+Description:    Module containing methods required for the Email Breach Checker program, which queries the
+                HaveIBeenPwned API to check whether accounts created using a given email address have been breached and
+                details or the users account leaked.
 
 """
 
 import os
 from Classes.cBreaches import Breach, PastBreach
 from Modules.breachLogging import breachLog
+import json
+
+# Load config
+with open('Config.json', 'r') as f:
+    config = json.loads(f.read())
 
 # Define the name/path of the file containing known breaches
-knownBreachFile = 'KnownBreaches.csv'
+knownBreachFile = config['Run']['Known Breaches']
+
 
 def checkFile():
+
+    """
+
+    Title:  checkFile
+    Author: Edward Klesel
+    Date:   08/07/2018
+
+    Description:    Checks if a file with a given name exists, and creates it if it does not.
+
+    """
 
     # Checks if the file already exists
     if not os.path.isfile(knownBreachFile):
@@ -40,6 +45,31 @@ def checkFile():
 
 
 def checkBreach(address, breach):
+
+    """
+
+    Title:  checkBreach
+    Author: Edward Klesel
+    Date:   08/07/2018
+
+    Description:    Checks the file containing breaches already known to the user. Returns True if known and False if
+                    it's a new breach. Can also check if the breach has been modified and needs amending.
+
+
+    Arguments:
+
+        address     A simple string containing an email address.
+
+        breach      Information in json format about a given breach for a given email address.
+
+        newBreach   A Breach object which contains information about the breach, whether it is new of not, or whether
+                    it needs amending.
+
+    Returns:
+
+
+
+    """
 
     # Creates a new Breach object
     newBreach = Breach(address, breach)
@@ -63,7 +93,8 @@ def checkBreach(address, breach):
 
                     # This breach is unchanged since the last check
                     newBreach.Amend = False
-                    breachLog('debug', 'The ' + newBreach.Title + ' breach on ' + newBreach.BreachDate + ' is already in the list of known breaches.')
+                    breachLog('debug', 'The ' + newBreach.Title + ' breach on ' + newBreach.BreachDate +
+                              ' is already in the list of known breaches.')
 
                 else:
                     breachLog('info', 'There has been an update to the ' + newBreach.Title + ' breach on ' + newBreach.BreachDate + ' since the last check!')
@@ -82,14 +113,49 @@ def checkBreach(address, breach):
 
     return newBreach
 
+
 def writeBreach(newBreach):
+
+    """
+
+    Title:  writeBreach
+    Author: Edward Klesel
+    Date:   08/07/2018
+
+    Description:    Takes the breach information, formats it and writes it to the file containing known breaches.
+
+
+    Arguments:
+
+        newBreach   A Breach object containing information about a given breach for a given email address. Used to
+                    determine whether the breach needs to be written to file.
+
+    """
 
     # Writes the new breach to the file containing known breaches
     with open(knownBreachFile, 'a') as knownBreaches:
         knownBreaches.write(newBreach.Info + '\n')
         breachLog('debug', 'Writing ' + newBreach.Title + ' to the list of known breaches.')
 
+
 def amendBreach(newBreach):
+
+    """
+
+    Title:  amendBreach
+    Author: Edward Klesel
+    Date:   08/07/2018
+
+    Description:    Takes the breach information, formats it and edits the dateModified in the file containing
+                    known breaches to indicate it's been updated.
+
+
+    Arguments:
+
+        newBreach   A Breach object containing information about a given breach for a given email address. Used to
+                    determine whether the breach that is in the file needs to be amended.
+
+    """
 
     # Reads the list of breaches to memory
     with open(knownBreachFile, 'r') as knownBreachesAll:
